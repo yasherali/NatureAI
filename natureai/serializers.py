@@ -1,6 +1,7 @@
 from rest_framework import serializers
-from natureai.models import User
+from natureai.models import User, Image
 from django.contrib.auth import authenticate
+
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -20,6 +21,7 @@ class UserSerializer(serializers.ModelSerializer):
         user.save()
         return user
 
+
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField()
@@ -33,9 +35,23 @@ class LoginSerializer(serializers.Serializer):
         attrs['user'] = user
         return attrs
 
+
 class ForgotPasswordSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)
     new_password = serializers.CharField(required=True, max_length=128)
 
+
 class VerificationSerilizer(serializers.Serializer):
     email = serializers.EmailField(required=True)
+
+
+class ImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Image
+        fields = ['id', 'image']
+
+
+class UserUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'phone']

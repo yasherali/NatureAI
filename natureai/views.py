@@ -2,9 +2,11 @@ from django.shortcuts import render
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.views import APIView
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.authentication import TokenAuthentication
 from rest_framework.response import Response
-from natureai.serializers import UserSerializer, ForgotPasswordSerializer, VerificationSerilizer
+from rest_framework.parsers import MultiPartParser, FormParser
+from natureai.serializers import UserSerializer, ForgotPasswordSerializer, VerificationSerilizer, ImageSerializer, UserUpdateSerializer
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import get_user_model
@@ -64,3 +66,32 @@ class VerificationAPIView(APIView):
 
         phone = user.phone
         return Response({'phone': phone})
+
+
+class ImageUploadView(APIView):
+    parser_classes = (MultiPartParser, FormParser)
+
+    def post(self, request, *args, **kwargs):
+        image_serializer = ImageSerializer(data=request.data)
+        if image_serializer.is_valid():
+            image_serializer.save()
+            return Response(image_serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(image_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserUpdateView(APIView):
+    def put(self, request):
+        User = get_user_model()
+        email = request.data.get('email')
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response({'detail': 'User with the specified email does not exist'},
+                            status=status.HTTP_404_NOT_FOUND)
+
+        serializer = UserUpdateSerializer(user, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

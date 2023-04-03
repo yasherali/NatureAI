@@ -15,3 +15,7 @@ class User(AbstractUser):
         related_name='user_permissions_set',
         blank=True,
     )
+
+
+class Image(models.Model):
+    image = models.ImageField(upload_to='images/')
